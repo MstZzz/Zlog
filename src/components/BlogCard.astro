@@ -1,0 +1,45 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { data } = post;
+---
+
+<article class="group relative rounded-2xl border border-zinc-800/50 bg-zinc-900/30 hover:bg-zinc-900/60 hover:border-zinc-700/50 transition-all duration-300 p-6">
+  <div class="flex items-center gap-2 text-xs text-zinc-500 mb-3">
+    <time datetime={data.date.toISOString()}>
+      {data.date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+    </time>
+    {data.tags.length > 0 && (
+      <>
+        <span class="text-zinc-700">·</span>
+        {data.tags.slice(0, 3).map((tag) => (
+          <a
+            href={`/blog?tag=${tag}`}
+            class="text-zinc-600 hover:text-violet-400 transition-colors"
+          >
+            #{tag}
+          </a>
+        ))}
+      </>
+    )}
+  </div>
+  <a href={`/blog/${post.id}`} class="block">
+    <h2 class="text-lg font-semibold text-white group-hover:text-violet-400 transition-colors mb-2 leading-snug">
+      {data.title}
+    </h2>
+    <p class="text-sm text-zinc-400 leading-relaxed line-clamp-2">
+      {data.description}
+    </p>
+    <div class="mt-4 flex items-center text-xs text-violet-400/60 group-hover:text-violet-400 transition-colors">
+      阅读更多
+      <svg class="w-3.5 h-3.5 ml-1 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </div>
+  </a>
+</article>

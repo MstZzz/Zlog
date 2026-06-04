@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="关于" description="关于我和这个博客。">
+  <Header />
+
+  <main class="max-w-3xl mx-auto px-6 pt-24 pb-8">
+    <h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-8">关于</h1>
+
+    <div class="prose prose-invert prose-zinc max-w-none
+      prose-headings:text-white
+      prose-p:text-zinc-300 prose-p:leading-relaxed
+      prose-a:text-violet-400 prose-a:no-underline
+    ">
+      <p>
+        你好，我是 ZLog 的作者。这里是我的个人博客，用来记录技术探索、生活感悟以及一切值得写下来的东西。
+      </p>
+      <p>
+        作为一个对技术充满好奇的人，我会在这里分享编程经验、架构思考以及对新技术的学习笔记。偶尔也会写一些关于读书、旅行和生活的杂记。
+      </p>
+      <h2>关于博客</h2>
+      <p>
+        这个博客使用 Astro 构建，部署在 Vercel 上。文章使用 Markdown 编写，通过 Git 进行版本管理。
+        选择这样的技术栈，是希望在简洁高效的同时拥有足够的扩展性——未来可以轻松接入更多功能。
+      </p>
+      <h2>联系</h2>
+      <p>
+        如果你想聊聊技术、合作，或者只是想打个招呼，欢迎通过以下方式找到我：
+      </p>
+      <ul>
+        <li>GitHub: <a href="#">github.com/yourname</a></li>
+        <li>邮箱: <a href="mailto:hello@zlog.me">hello@zlog.me</a></li>
+      </ul>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>

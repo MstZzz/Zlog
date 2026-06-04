@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import BlogCard from '../../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const sortedPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const allTags = [...new Set(sortedPosts.flatMap((p) => p.data.tags))].sort();
+
+const activeTag = Astro.url.searchParams.get('tag');
+const posts = activeTag
+  ? sortedPosts.filter((p) => p.data.tags.includes(activeTag))
+  : sortedPosts;
+---
+
+<BaseLayout title={activeTag ? `标签: ${activeTag}` : '文章'} description="所有博客文章。">
+  <Header />
+
+  <main class="max-w-3xl mx-auto px-6 pt-24 pb-8">
+    <h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight mb-3">
+      {activeTag ? `标签: ${activeTag}` : '文章'}
+    </h1>
+    <p class="text-zinc-400 mb-10">
+      {activeTag
+        ? `${posts.length} 篇文章 · ` : `共 ${posts.length} 篇文章 · `}
+      <a href="/blog" class="text-violet-400 hover:text-violet-300">查看全部</a>
+    </p>
+
+    {allTags.length > 0 && (
+      <div class="flex flex-wrap gap-2 mb-10">
+        {allTags.map((tag) => (
+          <a
+            href={`/blog?tag=${tag}`}
+            class={`px-3 py-1 text-xs rounded-full border transition-colors ${
+              activeTag === tag
+                ? 'bg-violet-500/15 text-violet-300 border-violet-500/30'
+                : 'bg-zinc-800/50 text-zinc-400 border-zinc-700/30 hover:bg-zinc-700/50 hover:text-zinc-200'
+            }`}
+          >
+            {tag}
+          </a>
+        ))}
+      </div>
+    )}
+
+    {posts.length === 0 ? (
+      <div class="text-center py-20">
+        <p class="text-zinc-500 text-lg">{activeTag ? '该标签下暂无文章' : '还没有文章'}</p>
+        {activeTag && (
+          <a href="/blog" class="text-sm text-violet-400 hover:text-violet-300 mt-2 inline-block">查看全部文章</a>
+        )}
+      </div>
+    ) : (
+      <div class="grid gap-4">
+        {posts.map((post) => <BlogCard post={post} />)}
+      </div>
+    )}
+  </main>
+
+  <Footer />
+</BaseLayout>

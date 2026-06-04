@@ -1,0 +1,16 @@
+<!-- ReadingTime: estimates reading time from word count -->
+<script>
+  function calcReadingTime() {
+    const article = document.querySelector('article.prose');
+    if (!article) return;
+    const text = article.textContent || '';
+    // Chinese: ~300 chars/min, English: ~200 words/min
+    const chineseChars = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+    const englishWords = text.replace(/[\u4e00-\u9fff]/g, '').split(/\s+/).filter(Boolean).length;
+    const minutes = Math.max(1, Math.ceil(chineseChars / 300 + englishWords / 200));
+    const el = document.getElementById('reading-time');
+    if (el) el.textContent = `约 ${minutes} 分钟`;
+  }
+  calcReadingTime();
+  document.addEventListener('astro:page-load', calcReadingTime);
+</script>

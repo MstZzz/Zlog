@@ -1,0 +1,54 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import BlogCard from '../components/BlogCard.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+const recentPosts = posts
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 5);
+---
+
+<BaseLayout title="ZLog" description="记录生活与工作，思考与创作。">
+  <Header />
+
+  <main class="max-w-3xl mx-auto px-6 pt-24 pb-8">
+    <section class="mb-20">
+      <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight mb-4">
+        记录生活，
+        <br />
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-200">
+          思考与创作。
+        </span>
+      </h1>
+      <p class="text-lg text-zinc-400 max-w-xl leading-relaxed">
+        欢迎来到我的个人博客。这里记录着我对技术、生活与世界的观察和思考。
+      </p>
+    </section>
+
+    <section>
+      <div class="flex items-center justify-between mb-8">
+        <h2 class="text-sm font-semibold text-zinc-400 uppercase tracking-widest">最近文章</h2>
+        <a href="/blog" class="text-sm text-violet-400/70 hover:text-violet-400 transition-colors">
+          查看全部 &rarr;
+        </a>
+      </div>
+
+      {recentPosts.length === 0 ? (
+        <div class="text-center py-20">
+          <div class="text-zinc-600 text-5xl mb-4">✍️</div>
+          <p class="text-zinc-500 text-lg mb-2">还没有文章</p>
+          <p class="text-zinc-600 text-sm">开始写你的第一篇博客吧。</p>
+        </div>
+      ) : (
+        <div class="grid gap-4">
+          {recentPosts.map((post) => <BlogCard post={post} />)}
+        </div>
+      )}
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>

@@ -1,0 +1,36 @@
+<!-- BackToTop: floating button that appears on scroll -->
+<button
+  id="back-to-top"
+  class="fixed bottom-8 right-8 z-40 p-3 rounded-full bg-zinc-800/80 text-zinc-400 hover:bg-zinc-700 hover:text-white shadow-lg border border-zinc-700/30 opacity-0 translate-y-2 pointer-events-none transition-all duration-300"
+  aria-label="回到顶部"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+  </svg>
+</button>
+
+<script>
+  const btn = document.getElementById('back-to-top');
+  if (btn) {
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const show = window.scrollY > 400;
+          btn.classList.toggle('opacity-0', !show);
+          btn.classList.toggle('translate-y-2', !show);
+          btn.classList.toggle('pointer-events-none', !show);
+          btn.classList.toggle('opacity-100', show);
+          btn.classList.toggle('translate-y-0', show);
+          btn.classList.toggle('pointer-events-auto', show);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+
+    btn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+</script>
