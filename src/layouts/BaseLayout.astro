@@ -22,7 +22,7 @@ const { title, description } = Astro.props;
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description || title} />
     <meta property="og:type" content={Astro.url.pathname === '/' ? 'website' : 'article'} />
-    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site || 'https://zlog.me').href} />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site || 'https://mstz.qzz.io').href} />
     <meta property="og:site_name" content="ZLog" />
 
     <!-- Twitter Card -->

@@ -7,7 +7,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
-  site: 'https://zlog.me',
+  site: 'https://mstz.qzz.io',
   markdown: {
     shikiConfig: {
       theme: 'github-dark',

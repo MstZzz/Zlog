@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://zlog.me/sitemap-index.xml
+Sitemap: https://mstz.qzz.io/sitemap-index.xml
