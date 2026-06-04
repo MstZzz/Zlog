@@ -4,6 +4,10 @@ node_modules/
 # Build output
 dist/
 
+# Astro generated
+.astro/
+.trash/
+
 # Environment variables
 .env
 .env.local
