@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import BlogCard from '../components/BlogCard.astro';
 
 const supabase = createClient(
   import.meta.env.SUPABASE_URL || '',
@@ -12,51 +11,107 @@ const supabase = createClient(
 
 const { data: allPosts } = await supabase
   .from('posts')
-  .select('slug, title, description, date, tags')
+  .select('*')
   .eq('draft', false)
   .order('date', { ascending: false })
-  .limit(5);
+  .limit(30);
 
-const recentPosts = allPosts || [];
+const posts = allPosts || [];
+const totalPosts = posts.length;
+
+const allTags = [...new Set(posts.flatMap((p) => p.tags || []))].sort();
 ---
 
 <BaseLayout title="ZLog" description="记录生活与工作，思考与创作。">
   <Header />
 
-  <main class="max-w-3xl mx-auto px-6 pt-24 pb-8">
-    <section class="mb-20">
+  <main class="max-w-5xl mx-auto px-6 pt-20 pb-12">
+    <!-- Hero -->
+    <section class="mb-12 text-center">
       <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-tight leading-tight mb-4">
-        记录生活，
-        <br />
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-violet-200">
-          思考与创作。
-        </span>
+        ZLog
       </h1>
-      <p class="text-lg text-zinc-400 max-w-xl leading-relaxed">
-        欢迎来到我的个人博客。这里记录着我对技术、生活与世界的观察和思考。
+      <p class="text-lg text-zinc-400 max-w-lg mx-auto leading-relaxed">
+        一群人记录生活、思考与创作的地方。
+      </p>
+      <p class="text-sm text-zinc-600 mt-3">
+        {totalPosts} 篇文章
       </p>
     </section>
 
-    <section>
-      <div class="flex items-center justify-between mb-8">
-        <h2 class="text-sm font-semibold text-zinc-400 uppercase tracking-widest">最近文章</h2>
-        <a href="/blog" class="text-sm text-violet-400/70 hover:text-violet-400 transition-colors">
-          查看全部 &rarr;
-        </a>
+    <div class="flex gap-8 max-lg:flex-col">
+      <!-- Feed -->
+      <div class="flex-1 min-w-0">
+        {posts.length === 0 ? (
+          <div class="text-center py-20">
+            <p class="text-zinc-500">还没有文章</p>
+            <a href="/register" class="text-violet-400 text-sm hover:text-violet-300 mt-2 inline-block">成为第一个写文章的人 →</a>
+          </div>
+        ) : (
+          <div class="space-y-4">
+            {posts.map((post) => (
+              <article class="group rounded-2xl border border-zinc-800/50 bg-zinc-900/30 hover:bg-zinc-900/60 hover:border-zinc-700/50 transition-all duration-300 p-6">
+                <a href={`/blog/${post.slug}`} class="block">
+                  {(post.tags?.length || 0) > 0 && (
+                    <div class="flex flex-wrap gap-2 mb-3">
+                      {post.tags.slice(0, 3).map((tag: string) => (
+                        <span class="text-xs text-zinc-500 bg-zinc-800/50 px-2 py-0.5 rounded-full">#{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                  <h2 class="text-xl font-semibold text-white group-hover:text-violet-400 transition-colors mb-2 leading-snug">
+                    {post.title}
+                  </h2>
+                  <p class="text-sm text-zinc-400 leading-relaxed line-clamp-2">
+                    {post.description || ''}
+                  </p>
+                  <div class="flex items-center gap-3 mt-4 text-xs text-zinc-500">
+                    <time datetime={post.date}>
+                      {new Date(post.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </time>
+                    <span class="inline-flex items-center gap-1 text-violet-400/60 group-hover:text-violet-400 transition-colors">
+                      阅读全文
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </span>
+                  </div>
+                </a>
+              </article>
+            ))}
+          </div>
+        )}
       </div>
 
-      {recentPosts.length === 0 ? (
-        <div class="text-center py-20">
-          <div class="text-zinc-600 text-5xl mb-4">✍️</div>
-          <p class="text-zinc-500 text-lg mb-2">还没有文章</p>
-          <p class="text-zinc-600 text-sm">开始写你的第一篇博客吧。</p>
+      <!-- Sidebar -->
+      <aside class="w-64 shrink-0 max-lg:w-full">
+        <div class="sticky top-24 space-y-6">
+          {allTags.length > 0 && (
+            <div class="p-5 rounded-2xl border border-zinc-800/50 bg-zinc-900/30">
+              <h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">标签</h3>
+              <div class="flex flex-wrap gap-2">
+                {allTags.map((tag) => (
+                  <a
+                    href={`/blog?tag=${tag}`}
+                    class="text-xs text-zinc-500 hover:text-violet-400 bg-zinc-800/50 hover:bg-zinc-800 px-2.5 py-1 rounded-full transition-colors"
+                  >
+                    {tag}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div class="p-5 rounded-2xl border border-zinc-800/50 bg-zinc-900/30">
+            <h3 class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">关于</h3>
+            <p class="text-sm text-zinc-400 leading-relaxed">
+              ZLog 是一个小小的博客平台，欢迎每个人在这里记录和分享。
+            </p>
+            <a href="/about" class="text-xs text-violet-400 hover:text-violet-300 mt-3 inline-block">了解更多 →</a>
+          </div>
         </div>
-      ) : (
-        <div class="grid gap-4">
-          {recentPosts.map((post) => <BlogCard post={post} />)}
-        </div>
-      )}
-    </section>
+      </aside>
+    </div>
   </main>
 
   <Footer />

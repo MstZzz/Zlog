@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="写文章 — ZLog" description="写点什么吧。">
+  <Header />
+
+  <main class="max-w-4xl mx-auto px-6 pt-20 pb-8">
+    <h1 class="text-2xl font-bold text-white mb-8">写文章</h1>
+
+    <div class="field"><label>标题 *</label><input id="etitle" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 outline-none focus:border-violet-500" placeholder="文章标题" /></div>
+    <div class="flex gap-4 mt-4">
+      <div class="flex-1 field"><label>描述</label><input id="edesc" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 outline-none focus:border-violet-500" placeholder="简短描述（选填）" /></div>
+      <div class="w-40 field"><label>日期</label><input id="edate" type="date" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 outline-none focus:border-violet-500" /></div>
+    </div>
+    <div class="mt-4 field"><label>标签（用逗号分隔）</label><input id="etags" class="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-200 outline-none focus:border-violet-500" placeholder="例如: 技术, 生活" /></div>
+
+    <div class="mt-6 editor-wrap">
+      <label class="block text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">正文 * — Markdown</label>
+      <div class="flex gap-4 max-md:flex-col">
+        <div class="flex-1">
+          <textarea id="emd" class="w-full h-[420px] p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-zinc-200 font-mono text-sm leading-relaxed outline-none focus:border-violet-500 resize-none" placeholder="在这里写 Markdown..."></textarea>
+        </div>
+        <div class="flex-1">
+          <div id="preview" class="h-[420px] overflow-y-auto p-4 rounded-xl bg-zinc-900 border border-zinc-700 text-sm leading-relaxed prose prose-invert prose-zinc max-w-none
+            prose-headings:text-white prose-h2:text-xl prose-h2:mt-6 prose-h2:mb-3
+            prose-p:text-zinc-300 prose-p:my-2
+            prose-a:text-violet-400
+            prose-code:bg-zinc-800 prose-code:text-violet-300 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
+            prose-pre:bg-zinc-950 prose-pre:border prose-pre:border-zinc-800 prose-pre:rounded-xl
+            prose-blockquote:border-violet-500/50 prose-blockquote:text-zinc-400
+            prose-li:text-zinc-300
+            prose-img:rounded-xl
+          "></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 flex items-center gap-4">
+      <button id="publish-btn" class="px-6 py-2.5 rounded-xl bg-violet-600 text-white font-medium hover:bg-violet-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">📤 发布</button>
+      <span id="publish-status" class="text-sm text-zinc-500"></span>
+    </div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  // ── Date ──
+  document.getElementById('edate').value = new Date().toISOString().split('T')[0];
+
+  // ── Live preview ──
+  var mdEl = document.getElementById('emd');
+  var previewEl = document.getElementById('preview');
+  var pt;
+  mdEl.addEventListener('input', function () {
+    clearTimeout(pt);
+    pt = setTimeout(function () { previewEl.innerHTML = marked.parse(mdEl.value || '*预览将在这里显示*'); }, 300);
+  });
+  previewEl.innerHTML = marked.parse('*预览将在这里显示*');
+
+  // ── Publish ──
+  document.getElementById('publish-btn').addEventListener('click', function () {
+    var btn = this;
+    var title = document.getElementById('etitle').value.trim();
+    var content = mdEl.value.trim();
+    if (!title || !content) { document.getElementById('publish-status').textContent = '标题和正文不能为空'; return; }
+
+    btn.disabled = true; btn.textContent = '⏳ 发布中...';
+    document.getElementById('publish-status').textContent = '';
+
+    fetch('/api/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: title,
+        description: document.getElementById('edesc').value.trim(),
+        tags: document.getElementById('etags').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean),
+        content: content,
+        source: 'editor',
+        date: document.getElementById('edate').value,
+      }),
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.ok) {
+        document.getElementById('publish-status').textContent = '✅ 发布成功！';
+        document.getElementById('etitle').value = '';
+        document.getElementById('edesc').value = '';
+        document.getElementById('etags').value = '';
+        mdEl.value = '';
+        previewEl.innerHTML = marked.parse('*预览将在这里显示*');
+      } else {
+        document.getElementById('publish-status').textContent = '❌ ' + (data.error || '发布失败');
+      }
+    }).catch(function () {
+      document.getElementById('publish-status').textContent = '❌ 网络错误';
+    }).then(function () {
+      btn.disabled = false; btn.textContent = '📤 发布';
+    });
+  });
+</script>

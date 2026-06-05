@@ -8,30 +8,36 @@ const navLinks = [
 ---
 
 <header class="sticky top-0 z-50 backdrop-blur-xl bg-zinc-950/80 border-b border-zinc-800/50">
-  <nav class="max-w-3xl mx-auto px-6 h-16 flex items-center justify-between">
-    <a href="/" class="text-lg font-semibold text-white tracking-tight hover:text-violet-400 transition-colors">
-      ZLog
-    </a>
+  <nav class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-8">
+      <a href="/" class="text-lg font-semibold text-white tracking-tight hover:text-violet-400 transition-colors">
+        ZLog
+      </a>
+      <!-- Desktop nav -->
+      <div class="hidden sm:flex items-center gap-1">
+        {navLinks.map((link) => {
+          const isActive = link.href === '/'
+            ? currentPath === '/'
+            : currentPath.startsWith(link.href);
+          return (
+            <a
+              href={link.href}
+              class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive
+                  ? 'text-white bg-zinc-800/80'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
+              }`}
+            >
+              {link.label}
+            </a>
+          );
+        })}
+      </div>
+    </div>
 
-    <!-- Desktop nav -->
-    <div class="hidden sm:flex items-center gap-1">
-      {navLinks.map((link) => {
-        const isActive = link.href === '/'
-          ? currentPath === '/'
-          : currentPath.startsWith(link.href);
-        return (
-          <a
-            href={link.href}
-            class={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              isActive
-                ? 'text-white bg-zinc-800/80'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
-            }`}
-          >
-            {link.label}
-          </a>
-        );
-      })}
+    <!-- Desktop right side -->
+    <div class="hidden sm:flex items-center gap-3" id="desktop-user-area">
+      <!-- Rendered by JS -->
     </div>
 
     <!-- Mobile hamburger -->
@@ -44,7 +50,7 @@ const navLinks = [
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
       <svg id="menu-icon-close" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L6 6l12 12" />
       </svg>
     </button>
   </nav>
@@ -70,10 +76,14 @@ const navLinks = [
         );
       })}
     </div>
+    <div class="px-6 py-3 border-t border-zinc-800/50 flex flex-col gap-1" id="mobile-user-area">
+      <!-- Rendered by JS -->
+    </div>
   </div>
 </header>
 
 <script>
+  // ── Mobile hamburger ──
   const toggle = document.getElementById('menu-toggle');
   const menu = document.getElementById('mobile-menu');
   const iconOpen = document.getElementById('menu-icon-open');
@@ -85,4 +95,53 @@ const navLinks = [
     iconOpen?.classList.toggle('hidden', !isOpen);
     iconClose?.classList.toggle('hidden', isOpen);
   });
+
+  // ── Auth state ──
+  function renderUserUI(user) {
+    const desktopArea = document.getElementById('desktop-user-area');
+    const mobileArea = document.getElementById('mobile-user-area');
+    if (!desktopArea || !mobileArea) return;
+
+    if (user) {
+      const name = user.profile?.display_name || user.profile?.username || user.email || '用户';
+      desktopArea.innerHTML =
+        '<a href="/write" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-violet-600 text-white hover:bg-violet-500 transition-colors">写文章</a>' +
+        '<div class="relative group">' +
+          '<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 transition-colors">' +
+            '<span class="w-6 h-6 rounded-full bg-violet-500/20 text-violet-300 flex items-center justify-center text-xs font-semibold">' + name.charAt(0) + '</span>' +
+            '<span>' + name + '</span>' +
+          '</button>' +
+          '<div class="absolute right-0 top-full mt-1 w-40 rounded-lg bg-zinc-900 border border-zinc-800 shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all">' +
+            '<a href="/my-posts" class="block px-4 py-2.5 text-sm text-zinc-400 hover:text-white hover:bg-zinc-800/50 rounded-t-lg">我的文章</a>' +
+            '<button id="logout-btn-desktop" class="w-full text-left px-4 py-2.5 text-sm text-zinc-400 hover:text-red-400 hover:bg-zinc-800/50 rounded-b-lg">退出登录</button>' +
+          '</div>' +
+        '</div>';
+
+      // Mobile
+      mobileArea.innerHTML =
+        '<a href="/write" class="px-3 py-2 rounded-lg text-sm font-medium bg-violet-600/20 text-violet-300">写文章</a>' +
+        '<a href="/my-posts" class="px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40">我的文章</a>' +
+        '<button id="logout-btn-mobile" class="text-left px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-red-400 hover:bg-zinc-800/40">退出登录</button>';
+
+      document.getElementById('logout-btn-desktop')?.addEventListener('click', doLogout);
+      document.getElementById('logout-btn-mobile')?.addEventListener('click', doLogout);
+
+    } else {
+      desktopArea.innerHTML =
+        '<a href="/login" class="px-3 py-1.5 rounded-lg text-sm font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40 transition-colors">登录</a>' +
+        '<a href="/register" class="px-3 py-1.5 rounded-lg text-sm font-medium bg-violet-600 text-white hover:bg-violet-500 transition-colors">注册</a>';
+      mobileArea.innerHTML =
+        '<a href="/login" class="px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40">登录</a>' +
+        '<a href="/register" class="px-3 py-2 rounded-lg text-sm font-medium bg-violet-600/20 text-violet-300">注册</a>';
+    }
+  }
+
+  function doLogout() {
+    fetch('/api/logout', { method: 'POST' }).then(function () { window.location.reload(); });
+  }
+
+  fetch('/api/me')
+    .then(function (r) { return r.json(); })
+    .then(function (data) { renderUserUI(data.user || null); })
+    .catch(function () { renderUserUI(null); });
 </script>

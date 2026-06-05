@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout title="我的文章 — ZLog" description="查看和管理你的文章。">
+  <Header />
+
+  <main class="max-w-3xl mx-auto px-6 pt-20 pb-8">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-2xl font-bold text-white">我的文章</h1>
+      <a href="/write" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 transition-colors">写新文章</a>
+    </div>
+
+    <div id="post-list"></div>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<script>
+  function loadPosts() {
+    var el = document.getElementById('post-list');
+    el.innerHTML = '<p class="text-zinc-500 text-sm">加载中...</p>';
+    fetch('/api/my-posts').then(function (r) { return r.json(); }).then(function (data) {
+      if (!data.posts || data.posts.length === 0) {
+        el.innerHTML = '<div class="text-center py-16"><p class="text-zinc-500">还没有文章</p><a href="/write" class="text-violet-400 text-sm hover:text-violet-300 mt-2 inline-block">写第一篇 →</a></div>';
+        return;
+      }
+      el.innerHTML = data.posts.map(function (p) {
+        var date = new Date(p.date).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
+        var tags = (p.tags || []).map(function (t) { return '<span class="text-xs text-zinc-500">#' + t + '</span>'; }).join(' ');
+        return '<div class="flex items-center justify-between p-4 rounded-xl bg-zinc-900/50 border border-zinc-800/50 hover:border-zinc-700/50 transition-colors mb-3">' +
+          '<div class="min-w-0 flex-1">' +
+            '<a href="/blog/' + p.slug + '" class="text-white font-medium hover:text-violet-400 transition-colors">' + p.title + '</a>' +
+            '<div class="flex items-center gap-2 mt-1 text-xs text-zinc-500">' +
+              '<span>' + date + '</span>' +
+              (tags ? '<span class="text-zinc-700">·</span> ' + tags : '') +
+            '</div>' +
+          '</div>' +
+          '<a href="/blog/' + p.slug + '" class="text-xs text-zinc-500 hover:text-violet-400 shrink-0 ml-4">查看</a>' +
+        '</div>';
+      }).join('');
+    }).catch(function () {
+      el.innerHTML = '<p class="text-zinc-500 text-sm">加载失败</p>';
+    });
+  }
+  loadPosts();
+</script>

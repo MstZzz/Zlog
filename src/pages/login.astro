@@ -78,7 +78,7 @@
       });
       const data = await res.json();
       if (data.ok) {
-        window.location.href = '/dashboard';
+        window.location.href = '/my-posts';
       } else {
         err.textContent = data.error || '登录失败';
         btn.disabled = false; btn.textContent = '登录';

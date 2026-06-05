@@ -96,7 +96,7 @@
       const json = await res.json();
       if (json.ok) {
         suc.textContent = '注册成功！正在跳转...';
-        setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+        setTimeout(() => { window.location.href = '/my-posts'; }, 1000);
       } else {
         err.textContent = json.error || '注册失败';
         btn.disabled = false; btn.textContent = '注册';
