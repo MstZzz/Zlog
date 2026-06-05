@@ -54,7 +54,7 @@ export const POST: APIRoute = async ({ request }) => {
     const fmMatch = content.match(/^---\s*\n([\s\S]*?)\n---\n*([\s\S]*)$/);
     if (fmMatch) {
       const fmLines = fmMatch[1].split('\n');
-      fmLines.forEach(line => {
+      fmLines.forEach((line: string) => {
         const [key, ...vals] = line.split(':');
         const val = vals.join(':').trim().replace(/^["']|["']$/g, '');
         if (key === 'title') finalTitle = val;
