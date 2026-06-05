@@ -70,8 +70,12 @@
       btn.disabled = true; btn.textContent = '登录中...';
       err.textContent = '';
 
-      const fd = new FormData(e.target);
-      const res = await fetch('/api/login', { method: 'POST', body: fd });
+      const form = e.target;
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email.value, password: form.password.value }),
+      });
       const data = await res.json();
       if (data.ok) {
         window.location.href = '/dashboard';

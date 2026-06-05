@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
+import { createClient } from '@supabase/supabase-js';
 
 export const POST: APIRoute = async ({ request }) => {
-  const formData = await request.formData();
-  const email = formData.get('email')?.toString() || '';
-  const password = formData.get('password')?.toString() || '';
+  const body = await request.json();
+  const email = body.email || '';
+  const password = body.password || '';
 
   if (!email || !password) {
     return new Response(JSON.stringify({ error: '请填写邮箱和密码' }), {
@@ -12,7 +13,6 @@ export const POST: APIRoute = async ({ request }) => {
     });
   }
 
-  const { createClient } = await import('@supabase/supabase-js');
   const supabaseUrl = import.meta.env.SUPABASE_URL || '';
   const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY || '';
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -36,14 +36,8 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const headers = new Headers({ 'Content-Type': 'application/json' });
-  headers.append(
-    'Set-Cookie',
-    `sb-access-token=${data.session.access_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`
-  );
-  headers.append(
-    'Set-Cookie',
-    `sb-refresh-token=${data.session.refresh_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`
-  );
+  headers.append('Set-Cookie', `sb-access-token=${data.session.access_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`);
+  headers.append('Set-Cookie', `sb-refresh-token=${data.session.refresh_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`);
 
   return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
 };

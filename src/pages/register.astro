@@ -81,14 +81,24 @@
       btn.disabled = true; btn.textContent = '注册中...';
       err.textContent = ''; suc.textContent = '';
 
-      const fd = new FormData(e.target);
-      const res = await fetch('/api/register', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.ok) {
+      const form = e.target;
+      const data = {
+        username: form.username.value,
+        display_name: form.display_name.value,
+        email: form.email.value,
+        password: form.password.value,
+      };
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = await res.json();
+      if (json.ok) {
         suc.textContent = '注册成功！正在跳转...';
         setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
       } else {
-        err.textContent = data.error || '注册失败';
+        err.textContent = json.error || '注册失败';
         btn.disabled = false; btn.textContent = '注册';
       }
     });

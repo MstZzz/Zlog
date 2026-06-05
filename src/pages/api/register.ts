@@ -1,13 +1,9 @@
-import { createSupabaseServerClient } from '../../lib/supabase';
+import type { APIRoute } from 'astro';
+import { createClient } from '@supabase/supabase-js';
 
-export async function POST({ request }: { request: Request }) {
-  const supabase = createSupabaseServerClient(request);
-  const formData = await request.formData();
-
-  const email = formData.get('email')?.toString() || '';
-  const password = formData.get('password')?.toString() || '';
-  const username = formData.get('username')?.toString() || '';
-  const displayName = formData.get('display_name')?.toString() || username;
+export const POST: APIRoute = async ({ request }) => {
+  const body = await request.json();
+  const { email, password, username, display_name } = body;
 
   if (!email || !password || !username) {
     return new Response(JSON.stringify({ error: '请填写所有必填字段' }), {
@@ -23,11 +19,17 @@ export async function POST({ request }: { request: Request }) {
     });
   }
 
+  const supabaseUrl = import.meta.env.SUPABASE_URL || '';
+  const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY || '';
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+  });
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { username, display_name: displayName },
+      data: { username, display_name: display_name || username },
     },
   });
 
@@ -38,7 +40,6 @@ export async function POST({ request }: { request: Request }) {
     });
   }
 
-  // Check if email confirmation is required
   if (data.user?.identities?.length === 0) {
     return new Response(JSON.stringify({ error: '该邮箱已注册' }), {
       status: 409,
@@ -46,25 +47,14 @@ export async function POST({ request }: { request: Request }) {
     });
   }
 
-  // Set the auth cookie
-  const headers = new Headers();
-  
-  // Forward the Set-Cookie from Supabase response
-  const authResponse = await supabase.auth.signInWithPassword({ email, password });
-  if (authResponse.data.session) {
-    const { session } = authResponse.data;
-    headers.append(
-      'Set-Cookie',
-      `sb-access-token=${session.access_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`
-    );
-    headers.append(
-      'Set-Cookie',
-      `sb-refresh-token=${session.refresh_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`
-    );
+  // Auto login after register
+  const { data: loginData } = await supabase.auth.signInWithPassword({ email, password });
+  const headers = new Headers({ 'Content-Type': 'application/json' });
+
+  if (loginData?.session) {
+    headers.append('Set-Cookie', `sb-access-token=${loginData.session.access_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`);
+    headers.append('Set-Cookie', `sb-refresh-token=${loginData.session.refresh_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`);
   }
 
-  return new Response(JSON.stringify({ ok: true, user: data.user }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json', ...Object.fromEntries(headers) },
-  });
-}
+  return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
+};
