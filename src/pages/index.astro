@@ -1,14 +1,23 @@
 ---
+import { createClient } from '@supabase/supabase-js';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import BlogCard from '../components/BlogCard.astro';
-import { getCollection } from 'astro:content';
 
-const posts = await getCollection('blog', ({ data }) => !data.draft);
-const recentPosts = posts
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 5);
+const supabase = createClient(
+  import.meta.env.SUPABASE_URL || '',
+  import.meta.env.SUPABASE_ANON_KEY || ''
+);
+
+const { data: allPosts } = await supabase
+  .from('posts')
+  .select('slug, title, description, date, tags')
+  .eq('draft', false)
+  .order('date', { ascending: false })
+  .limit(5);
+
+const recentPosts = allPosts || [];
 ---
 
 <BaseLayout title="ZLog" description="记录生活与工作，思考与创作。">

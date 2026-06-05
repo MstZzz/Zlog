@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>注册 — ZLog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+      background: #09090b; color: #d4d4d8;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      width: 360px; padding: 32px; border-radius: 16px;
+      background: #18181b; border: 1px solid #27272a;
+    }
+    h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #71717a; margin-bottom: 24px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: #71717a; margin-bottom: 4px; }
+    .field input {
+      width: 100%; padding: 10px 14px; border-radius: 8px;
+      background: #09090b; border: 1px solid #27272a; color: #e4e4e7;
+      font-size: 14px; outline: none; transition: border .2s;
+    }
+    .field input:focus { border-color: #8b5cf6; }
+    button {
+      width: 100%; padding: 10px; border-radius: 8px; cursor: pointer;
+      background: #8b5cf6; color: #fff; font-size: 14px; font-weight: 600;
+      border: none; transition: background .2s; margin-top: 4px;
+    }
+    button:hover { background: #7c3aed; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .error { color: #f87171; font-size: 13px; min-height: 20px; margin-top: 12px; text-align: center; }
+    .success { color: #6ee7b7; font-size: 13px; min-height: 20px; margin-top: 12px; text-align: center; }
+    .link { text-align: center; margin-top: 16px; font-size: 13px; color: #71717a; }
+    .link a { color: #8b5cf6; text-decoration: none; }
+    .link a:hover { color: #a78bfa; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>加入 ZLog</h1>
+    <p class="subtitle">创建一个账号，开始写点什么</p>
+    <form id="register-form">
+      <div class="field">
+        <label>用户名 *</label>
+        <input name="username" type="text" placeholder="你的唯一 ID" required />
+      </div>
+      <div class="field">
+        <label>显示名称</label>
+        <input name="display_name" type="text" placeholder="别人看到的名字（选填）" />
+      </div>
+      <div class="field">
+        <label>邮箱 *</label>
+        <input name="email" type="email" placeholder="your@email.com" required />
+      </div>
+      <div class="field">
+        <label>密码 *（至少 6 位）</label>
+        <input name="password" type="password" placeholder="设置密码" required minlength="6" />
+      </div>
+      <button type="submit">注册</button>
+      <div class="error" id="error-msg"></div>
+      <div class="success" id="success-msg"></div>
+    </form>
+    <div class="link">
+      已有账号？<a href="/login">登录</a>
+    </div>
+  </div>
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button');
+      const err = document.getElementById('error-msg');
+      const suc = document.getElementById('success-msg');
+      btn.disabled = true; btn.textContent = '注册中...';
+      err.textContent = ''; suc.textContent = '';
+
+      const fd = new FormData(e.target);
+      const res = await fetch('/api/register', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.ok) {
+        suc.textContent = '注册成功！正在跳转...';
+        setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+      } else {
+        err.textContent = data.error || '注册失败';
+        btn.disabled = false; btn.textContent = '注册';
+      }
+    });
+  </script>
+</body>
+</html>

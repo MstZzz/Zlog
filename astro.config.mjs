@@ -4,8 +4,8 @@ import sitemap from '@astrojs/sitemap';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
-  output: 'static',
-  adapter: vercel(),
+  output: 'server',
+  adapter: vercel({ isr: false }),
   integrations: [sitemap()],
   vite: {
     plugins: [tailwindcss()],

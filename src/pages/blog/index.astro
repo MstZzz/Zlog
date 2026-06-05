@@ -1,19 +1,30 @@
 ---
+import { createClient } from '@supabase/supabase-js';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
 import BlogCard from '../../components/BlogCard.astro';
-import { getCollection } from 'astro:content';
 
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const sortedPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const supabase = createClient(
+  import.meta.env.SUPABASE_URL || '',
+  import.meta.env.SUPABASE_ANON_KEY || ''
+);
 
-const allTags = [...new Set(sortedPosts.flatMap((p) => p.data.tags))].sort();
+// Get all published posts with author info
+const { data: allPosts } = await supabase
+  .from('posts')
+  .select('id, slug, title, description, date, tags, author_id')
+  .eq('draft', false)
+  .order('date', { ascending: false });
+
+const posts = allPosts || [];
+
+const allTags = [...new Set(posts.flatMap((p) => p.tags || []))].sort();
 
 const activeTag = Astro.url.searchParams.get('tag');
-const posts = activeTag
-  ? sortedPosts.filter((p) => p.data.tags.includes(activeTag))
-  : sortedPosts;
+const filteredPosts = activeTag
+  ? posts.filter((p) => (p.tags || []).includes(activeTag))
+  : posts;
 ---
 
 <BaseLayout title={activeTag ? `标签: ${activeTag}` : '文章'} description="所有博客文章。">
@@ -25,7 +36,7 @@ const posts = activeTag
     </h1>
     <p class="text-zinc-400 mb-10">
       {activeTag
-        ? `${posts.length} 篇文章 · ` : `共 ${posts.length} 篇文章 · `}
+        ? `${filteredPosts.length} 篇文章 · ` : `共 ${posts.length} 篇文章 · `}
       <a href="/blog" class="text-violet-400 hover:text-violet-300">查看全部</a>
     </p>
 
@@ -46,7 +57,7 @@ const posts = activeTag
       </div>
     )}
 
-    {posts.length === 0 ? (
+    {filteredPosts.length === 0 ? (
       <div class="text-center py-20">
         <p class="text-zinc-500 text-lg">{activeTag ? '该标签下暂无文章' : '还没有文章'}</p>
         {activeTag && (
@@ -55,7 +66,7 @@ const posts = activeTag
       </div>
     ) : (
       <div class="grid gap-4">
-        {posts.map((post) => <BlogCard post={post} />)}
+        {filteredPosts.map((post) => <BlogCard post={post} />)}
       </div>
     )}
   </main>
